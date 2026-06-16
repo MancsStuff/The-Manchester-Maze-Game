@@ -422,6 +422,10 @@ function ThreeMazeTransition({ text, onComplete, duration = 2800 }) {
   useEffect(() => {
     const mount = mountRef.current;
     if (!mount) return;
+    // If Three.js failed to load or WebGL is unavailable, skip the 3D scene
+    // instead of crashing the whole game.
+    if (typeof THREE === 'undefined') return;
+    try {
 
     const w = mount.clientWidth, h = mount.clientHeight;
     const scene = new THREE.Scene();
@@ -522,6 +526,13 @@ function ThreeMazeTransition({ text, onComplete, duration = 2800 }) {
       try { mount.removeChild(renderer.domElement); } catch(e) {}
       renderer.dispose();
     };
+    } catch (err) {
+      // 3D scene failed (WebGL/library issue) — skip the walking transition
+      // so the story continues instead of freezing.
+      console.error('3D transition skipped:', err);
+      const t = setTimeout(onComplete, 200);
+      return () => clearTimeout(t);
+    }
   }, [onComplete, duration]);
 
   return (
@@ -1091,15 +1102,31 @@ function App() {
   );
 }
 
-// Hide loading screen, mount app
-window.addEventListener('load', () => {
-  setTimeout(() => {
-    document.getElementById('loading').classList.add('hide');
-  }, 800);
+// Hide loading screen as soon as the app mounts (not on window 'load',
+// which may never fire cleanly on mobile). Trap any startup error visibly.
+function hideLoading(){
+  var el = document.getElementById('loading');
+  if (el) el.classList.add('hide');
+}
+window.addEventListener('error', function(e){
+  var l = document.getElementById('loading');
+  if (l) {
+    l.classList.remove('hide');
+    l.innerHTML = '<h1 style="font-size:20px">The Manchester Maze</h1>'
+      + '<div style="font-family:monospace;color:#caa;max-width:90%;margin:14px auto;font-size:12px;line-height:1.5">'
+      + 'Hit a snag loading: ' + (e.message||'') + '<br><br>Try refreshing the page.</div>';
+  }
 });
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(<App />);
+try {
+  const root = ReactDOM.createRoot(document.getElementById('root'));
+  root.render(<App />);
+  // give React a tick to paint, then reveal it
+  setTimeout(hideLoading, 400);
+} catch (err) {
+  var l = document.getElementById('loading');
+  if (l) l.querySelector('.dots').textContent = 'Error: ' + (err.message||'failed to start');
+}
 </script>
 
 </body>
