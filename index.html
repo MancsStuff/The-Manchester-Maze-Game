@@ -247,7 +247,7 @@ const SCENES = [
       "Your hand goes to your sock. Bone-handle knife in there, dad’s old fishing one. You’ve carried it for months. Never used it on owt that walks.",
       "You’re already dizzy. Heart going like a washing machine on full spin.",
     ],
-    timed: 8, timeoutChoice: 2,
+    timed: 10, timeoutChoice: 2,
     choices: [
       { text: "Pull the knife. Shout you’ll use it. Mean it.", effects: { outside: 2, damage: 3, intense: true } },
       { text: "Leg it. Hard as you can. Don’t look back.", effects: { damage: 1, self: 1 } },
@@ -906,8 +906,89 @@ function Ending({ ending, stats, inventory, onRestart }) {
   );
 }
 
+function AgeGate({ onEnter }) {
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 9000,
+      backgroundColor: C.bg, display: 'flex', alignItems: 'center', justifyContent: 'center',
+      padding: '24px', overflow: 'auto' }}>
+      <div style={{ maxWidth: '32rem', width: '100%', textAlign: 'center',
+        animation: 'fadeInUp 0.6s ease-out', position: 'relative', zIndex: 10 }}>
+
+        <div style={{ fontSize: '11px', letterSpacing: '0.4em',
+          fontFamily: FONT_BODY, color: C.sodium, marginBottom: '16px' }}>
+          ⚠ CONTENT WARNING ⚠
+        </div>
+
+        <h1 style={{ fontFamily: FONT_DISPLAY,
+          fontSize: 'clamp(2rem, 8vw, 3.5rem)', lineHeight: 0.95,
+          color: C.paper, margin: '0 0 8px 0',
+          textShadow: `3px 3px 0 ${C.blood}`, letterSpacing: '0.02em' }}>
+          THE<br/>MANCHESTER<br/>MAZE
+        </h1>
+
+        <p style={{ fontFamily: FONT_BODY, color: C.paperDim,
+          fontSize: '0.85rem', letterSpacing: '0.2em',
+          margin: '8px 0 32px 0' }}>
+          AN INTERACTIVE MEMOIR
+        </p>
+
+        <div style={{ borderLeft: `3px solid ${C.sodium}`,
+          padding: '16px 20px', textAlign: 'left',
+          backgroundColor: 'rgba(34,31,27,0.85)',
+          marginBottom: '24px' }}>
+          <p style={{ fontFamily: FONT_BODY, color: C.paper,
+            fontSize: '0.95rem', lineHeight: 1.6, margin: '0 0 12px 0' }}>
+            This is a true-life memoir based on the book by Christopher Ryan Leece.
+          </p>
+          <p style={{ fontFamily: FONT_BODY, color: C.paper,
+            fontSize: '0.95rem', lineHeight: 1.6, margin: '0 0 12px 0' }}>
+            It contains references to <strong style={{ color: C.sodium }}>violence,
+            drug use, bullying, addiction and self-harm</strong>.
+          </p>
+          <p style={{ fontFamily: FONT_BODY, color: C.paperDim,
+            fontSize: '0.85rem', lineHeight: 1.6, margin: 0, fontStyle: 'italic' }}>
+            Names, places and events have been fictionalised. Recommended for ages 16+.
+          </p>
+        </div>
+
+        <button onClick={onEnter}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '10px',
+            padding: '14px 28px', backgroundColor: C.sodium, color: C.ink,
+            fontFamily: FONT_DISPLAY, fontSize: '1.1rem',
+            letterSpacing: '0.15em', border: 'none',
+            cursor: 'pointer', marginBottom: '12px' }}>
+          I'M 16 OR OVER · ENTER
+          <ArrowRight size={18} stroke={2.5}/>
+        </button>
+
+        <div style={{ marginTop: '8px' }}>
+          <a href="https://www.google.com"
+            style={{ fontFamily: FONT_BODY, color: C.paperDim,
+              fontSize: '0.8rem', letterSpacing: '0.1em',
+              textDecoration: 'underline' }}>
+            Leave this page
+          </a>
+        </div>
+
+        <div style={{ marginTop: '32px', paddingTop: '20px',
+          borderTop: `1px solid ${C.concrete}`,
+          fontFamily: FONT_BODY, color: C.paperDim,
+          fontSize: '0.75rem', lineHeight: 1.6, letterSpacing: '0.05em' }}>
+          By entering, you confirm you are 16 or older and consent to the themes above.
+          <br/><br/>
+          <span style={{ color: C.paperDim }}>
+            If you're struggling — Samaritans <strong style={{ color: C.paper }}>116 123</strong> (free, 24/7) ·
+            text <strong style={{ color: C.paper }}>SHOUT</strong> to <strong style={{ color: C.paper }}>85258</strong>
+          </span>
+        </div>
+
+      </div>
+    </div>
+  );
+}
+
 function App() {
-  const [stage, setStage] = useState('intro');
+  const [stage, setStage] = useState('agegate');
   const [currentIdx, setCurrentIdx] = useState(0);
   const [stats, setStats] = useState({ self: 0, mask: 0, outside: 0, damage: 0, friend: 0 });
   const [inventory, setInventory] = useState([]);
@@ -989,6 +1070,7 @@ function App() {
       animation: 'flicker 4s infinite' }}>
       {showHUD && <CompassHUD stats={stats} sceneIndex={playableIndex} totalScenes={playableScenes.length}/>}
       {pickup && <PickupToast item={pickup}/>}
+      {stage === 'agegate' && <AgeGate onEnter={() => setStage('intro')}/>}
       {stage === 'intro' && <CinematicIntro onComplete={start}/>}
       {stage === 'playing' && scene && scene.type === 'sensory' && (
         <SensoryScene scene={scene} onContinue={continueSensory}/>
